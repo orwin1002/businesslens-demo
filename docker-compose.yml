@@ -1,0 +1,27 @@
+# Runs PostgreSQL and Meilisearch on your own computer: `docker compose up -d`
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.56
+    restart: always
+    environment:
+      MEILI_MASTER_KEY: devmasterkey1234567890
+    ports:
+      - '7700:7700'
+    volumes:
+      - meilidata:/meili_data
+
+volumes:
+  pgdata:
+  meilidata:
