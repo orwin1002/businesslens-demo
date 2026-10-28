@@ -83,11 +83,6 @@ export async function logIn(form: FormData) {
   redirect(next)
 }
 
-export async function logOut() {
-  ;(await cookies()).delete(TOKEN_COOKIE)
-  redirect('/')
-}
-
 export async function forgotPassword(form: FormData) {
   const payload = await payloadClient()
   try {

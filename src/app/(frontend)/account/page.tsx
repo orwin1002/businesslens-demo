@@ -7,7 +7,6 @@ import { Stars } from '@/components/site/Scores'
 import { fmtDate } from '@/lib/format'
 import type { PageProps } from '@/lib/params'
 import { currentUser, payloadClient } from '@/lib/payload'
-import { logOut } from '../actions'
 
 export const metadata = { title: 'My account', robots: { index: false } }
 
@@ -29,7 +28,7 @@ export default async function Account({ searchParams }: PageProps) {
           <h1 style={{ marginBottom: 4 }}>Hello, {user.name || user.email}</h1>
           <p className="muted" style={{ margin: 0 }}>{user.email} · {user.role === 'member' ? 'Member' : user.role}</p>
         </div>
-        <form action={logOut}><button className="btn secondary">Sign out</button></form>
+        <form action="/logout" method="post"><button className="btn secondary">Sign out</button></form>
       </div>
       <Notice message={sp.message} error={sp.error} />
       <div className="row" style={{ margin: '16px 0' }}>
