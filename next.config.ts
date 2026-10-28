@@ -26,7 +26,8 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       // Forms may also be sent from the Cloudflare Worker address (see cloudflare/worker.js).
-      allowedOrigins: ['*.workers.dev', ...(process.env.EXTRA_ALLOWED_ORIGINS?.split(',') ?? [])],
+      // '**' because Worker addresses have two parts before workers.dev (name.account.workers.dev).
+      allowedOrigins: ['**.workers.dev', ...(process.env.EXTRA_ALLOWED_ORIGINS?.split(',') ?? [])],
     },
   },
   turbopack: {
