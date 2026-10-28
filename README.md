@@ -53,8 +53,8 @@ You can skip this step: search still works without it, using the database instea
 
 1. Sign up at [cloud.meilisearch.com](https://cloud.meilisearch.com). It has a free 14-day trial.
 2. Create a project. Pick the region closest to Frankfurt and the smallest size.
-3. On the project page, copy the **Database URL**. This is your **MEILI_HOST**.
-4. Copy the **Default Admin API Key**. This is your **MEILI_API_KEY**.
+3. On the project's **Overview** page, copy the **URL** (it looks like `https://ms-xxxx.fra.meilisearch.io`). This is your **MEILI_HOST**.
+4. Copy the **Default Admin API Key**. It's on the same page, or under **Settings** → **API Keys**. This is your **MEILI_API_KEY**. Use the Admin key, not the Search key.
 
 ### Step 4. Put the site live on Vercel (10 min)
 
