@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
 
     return webpackConfig
   },
+  experimental: {
+    serverActions: {
+      // Forms may also be sent from the Cloudflare Worker address (see cloudflare/worker.js).
+      allowedOrigins: ['*.workers.dev', ...(process.env.EXTRA_ALLOWED_ORIGINS?.split(',') ?? [])],
+    },
+  },
   turbopack: {
     root: path.resolve(dirname),
   },

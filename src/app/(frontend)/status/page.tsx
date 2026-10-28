@@ -3,6 +3,7 @@ import { headers as getHeaders } from 'next/headers.js'
 import { currentUser, payloadClient } from '@/lib/payload'
 import { INDEX, meili } from '@/lib/search'
 import { siteURL } from '@/lib/site'
+import { turnstileSiteKey } from '@/lib/turnstile'
 import { reindexSearch, sendTestEmail } from '../actions'
 import { Notice, type PageProps } from '../Notice'
 
@@ -67,14 +68,23 @@ export default async function Status({ searchParams }: PageProps) {
   )
 
   // 5. Cloudflare adds a "cf-ray" header to every request it passes on.
-  const ray = headers.get('cf-ray')
+  //    Through the Worker (cloudflare/worker.js) it arrives as "x-cf-ray" instead.
+  const ray = headers.get('cf-ray') || headers.get('x-cf-ray')
+  const country = headers.get('cf-ipcountry') || headers.get('x-cf-country') || '?'
   checks.push(
     ray
-      ? { name: 'Cloudflare', ok: true, detail: `This request came through Cloudflare (ray ${ray}, visitor country ${headers.get('cf-ipcountry') ?? '?'}).` }
-      : { name: 'Cloudflare', ok: null, detail: 'This request did not come through Cloudflare. Open the site on your own domain once Cloudflare is set up.' },
+      ? { name: 'Cloudflare', ok: true, detail: `This request came through Cloudflare${headers.get('x-cf-ray') ? ' (via the Worker)' : ''}: ray ${ray}, visitor country ${country}.` }
+      : { name: 'Cloudflare', ok: null, detail: 'This request did not come through Cloudflare. Open the site on its workers.dev address or your own domain.' },
   )
 
-  // 6. Sign-in.
+  // 6. Cloudflare Turnstile bot check.
+  checks.push(
+    process.env.TURNSTILE_SECRET_KEY && turnstileSiteKey()
+      ? { name: 'Bot check (Turnstile)', ok: true, detail: 'Switched on for sign-up and reviews. Open the sign-up page to see it.' }
+      : { name: 'Bot check (Turnstile)', ok: null, detail: 'Not set up yet. Forms work without it.' },
+  )
+
+  // 7. Sign-in.
   checks.push(
     user
       ? { name: 'Sign-in (Payload)', ok: true, detail: `You are signed in as ${user.email} (${user.role}).` }

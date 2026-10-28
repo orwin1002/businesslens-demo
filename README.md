@@ -9,7 +9,7 @@ A throwaway website that tests every part of the BusinessLens stack together bef
 | PostgreSQL | Stores firms, users and reviews | Render |
 | Meilisearch | Typo-tolerant search ("capitl" finds "Capital") | Meilisearch Cloud |
 | Email | Confirm-your-email, password reset, review emails | Resend (or Postmark) |
-| Cloudflare | Your domain name, sitting in front of the site | Cloudflare |
+| Cloudflare | Sits in front of the site; "Verify you are human" check on sign-up and reviews | Cloudflare (Worker + Turnstile) |
 
 Open **`/status`** on the live site. It checks each part and shows a green tick when that part is connected.
 
@@ -85,7 +85,7 @@ Go through this list on the live site:
 
 - [ ] `/status` shows ticks for **Vercel**, **Database** and **Search**.
 - [ ] Search for `capitl` (typo on purpose). "Demo Capital Markets Ltd" should come up.
-- [ ] **Sign up** with the email from Step 2. You should get a "Confirm your account" email. Click the link.
+- [ ] **Sign up** with the email from Step 2. You should get a "Confirm your account" email. Click the link, then **Confirm my email**.
 - [ ] **Sign in.** Your name appears top right.
 - [ ] Open a firm and **write a review**. You should get a "We received your review" email.
 - [ ] In `/admin` → **Reviews**, open the review, set **Status** to `approved` and click **Save**. You should get a "Your review is live" email, and the review appears on the firm page with its star score.
@@ -94,18 +94,51 @@ Go through this list on the live site:
 - [ ] As admin, add a new firm in `/admin` → **Firms**, then search for it. It should show up straight away.
 - [ ] Open `/sitemap.xml`. It should list every firm page (this is for SEO).
 
-### Step 7. Your own domain through Cloudflare (optional, needs a domain)
+### Step 7. Cloudflare without buying a domain (15 min)
 
-This step needs a domain name you own. You can buy one at cost on Cloudflare (**Domain Registration** → **Register Domains**, about $10 a year for a `.com`).
+This puts the site behind Cloudflare and adds Cloudflare's "Verify you are human" check. Neither needs a domain.
 
-1. Sign up at [dash.cloudflare.com](https://dash.cloudflare.com). Click **Add a domain**, type your domain and choose the **Free** plan.
-   If you bought the domain somewhere else, Cloudflare shows you two *nameservers*. Paste them into your domain seller's settings. This can take up to a few hours to take effect.
-2. In **Vercel** → your project → **Settings** → **Domains**, add `demo.yourdomain.com`. Vercel shows a **CNAME** value, usually `cname.vercel-dns.com` or a longer one specific to your project.
-3. In **Cloudflare** → your domain → **DNS** → **Records** → **Add record**:
-   Type `CNAME`, Name `demo`, Target = the value Vercel showed. Leave the cloud **orange (Proxied)** so traffic goes through Cloudflare.
-4. In **Cloudflare** → **SSL/TLS** → **Overview**, set the mode to **Full (strict)**.
-5. In **Vercel** → **Settings** → **Environment Variables**, add `SITE_URL` = `https://demo.yourdomain.com`. Then go to **Deployments** → the newest one → **⋯** → **Redeploy**.
-6. Open `https://demo.yourdomain.com/status`. The **Cloudflare** row should now show a tick and your country.
+**7a. Put the site behind Cloudflare with a Worker**
+
+1. Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) (free).
+2. In the left menu, open **Workers & Pages** (it may sit under **Compute**). Click **Create** → **Start with Hello World** (or **Create Worker**).
+3. Name it `buisnesslens-demo` and click **Deploy**.
+4. Click **Edit code**. Delete everything in the editor and paste in the whole of [`cloudflare/worker.js`](cloudflare/worker.js) from this repo.
+5. On the `const ORIGIN = ...` line, replace `https://YOUR-SITE.vercel.app` with your real Vercel address, for example `https://businesslens-demo-abc123.vercel.app`.
+6. Click **Deploy**. Cloudflare shows the Worker's address, for example `https://buisnesslens-demo.yourname.workers.dev`. Copy it.
+
+**7b. Turn on the "Verify you are human" check (Turnstile)**
+
+1. In the Cloudflare left menu, open **Turnstile** (it may sit under **Application security**). Click **Add widget**.
+2. Widget name: `businesslens-demo`. Under **Hostnames**, add both addresses without `https://`:
+   `businesslens-demo-abc123.vercel.app` and `buisnesslens-demo.yourname.workers.dev`.
+3. Widget mode: **Managed**. Click **Create**.
+4. Copy the **Site Key** and the **Secret Key**.
+
+**7c. Tell the site about both**
+
+1. In **Vercel** → your project → **Settings** → **Environment Variables**, add:
+
+   | Name | Value |
+   |---|---|
+   | `SITE_URL` | your Worker address from 7a, e.g. `https://buisnesslens-demo.yourname.workers.dev` |
+   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | the Site Key from 7b |
+   | `TURNSTILE_SECRET_KEY` | the Secret Key from 7b |
+
+2. Go to **Deployments** → the newest one → **⋯** → **Redeploy**.
+3. Open `https://buisnesslens-demo.yourname.workers.dev/status`. The **Cloudflare** row should show a tick, "via the Worker", and your country. The **Bot check** row should show a tick.
+4. Open **Sign up**. A small Cloudflare box appears above the button. Wait for its tick, then sign up as usual. Email links now point to the Worker address too.
+
+> **What this does not cover:** firewall rules, "Under Attack" mode, bot-fight mode and rate limits. Those settings pages only exist for a domain you've added to Cloudflare. A `workers.dev` address belongs to Cloudflare, so you can't change its settings. We set those up once the real BusinessLens domain is bought.
+
+### Step 8. Later: the real domain
+
+Once a domain is bought (for example on Cloudflare: **Domain Registration** → **Register Domains**):
+
+1. In **Vercel** → **Settings** → **Domains**, add `demo.yourdomain.com`. Vercel shows a **CNAME** value.
+2. In **Cloudflare** → your domain → **DNS** → **Records**, add a `CNAME` record named `demo` pointing to that value, with the orange cloud (**Proxied**) on.
+3. In **Cloudflare** → **SSL/TLS** → **Overview**, set the mode to **Full (strict)**.
+4. Change `SITE_URL` in Vercel to `https://demo.yourdomain.com`, add that hostname to the Turnstile widget, and redeploy. The Worker is no longer needed.
 
 ---
 
@@ -134,4 +167,6 @@ pnpm dev                      # open http://localhost:3000
 - `src/app/(frontend)/`: the public pages. `actions.ts` holds every form action (sign-up, sign-in, review and so on).
 - `src/app/(frontend)/status/page.tsx`: the status checks.
 - `src/lib/search.ts`: keeps Meilisearch in step with the database.
+- `src/lib/turnstile.ts` and `src/app/(frontend)/Turnstile.tsx`: the Cloudflare robot check.
+- `cloudflare/worker.js`: the Worker that puts the site behind Cloudflare.
 - `src/migrations/`: database changes, applied automatically when the site starts.

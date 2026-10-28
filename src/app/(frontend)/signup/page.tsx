@@ -1,6 +1,8 @@
 import Link from 'next/link'
 
+import { turnstileSiteKey } from '@/lib/turnstile'
 import { signUp } from '../actions'
+import { Turnstile } from '../Turnstile'
 import { Notice, type PageProps } from '../Notice'
 
 export default async function SignUp({ searchParams }: PageProps) {
@@ -13,6 +15,7 @@ export default async function SignUp({ searchParams }: PageProps) {
         <label>Name<input name="name" required /></label>
         <label>Email<input name="email" type="email" required /></label>
         <label>Password<input name="password" type="password" minLength={8} required /></label>
+        <Turnstile siteKey={turnstileSiteKey()} />
         <button>Sign up</button>
       </form>
       <p>Already have an account? <Link href="/login">Sign in</Link></p>

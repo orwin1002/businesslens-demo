@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation.js'
 
 import { currentUser, payloadClient } from '@/lib/payload'
+import { turnstileSiteKey } from '@/lib/turnstile'
 import { postReview } from '../../actions'
+import { Turnstile } from '../../Turnstile'
 import { Notice } from '../../Notice'
 
 type Props = {
@@ -65,6 +67,7 @@ export default async function FirmPage({ params, searchParams }: Props) {
           </label>
           <label>Title<input name="title" required /></label>
           <label>Your review<textarea name="body" rows={4} required /></label>
+          <Turnstile siteKey={turnstileSiteKey()} />
           <button>Send review</button>
         </form>
       ) : (

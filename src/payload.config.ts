@@ -10,7 +10,6 @@ import { Firms } from './collections/Firms'
 import { Reviews } from './collections/Reviews'
 import { Users } from './collections/Users'
 import { migrations } from './migrations'
-import { siteURL } from './lib/site'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -18,7 +17,6 @@ const dirname = path.dirname(filename)
 const smtpPort = Number(process.env.SMTP_PORT || 587)
 
 export default buildConfig({
-  serverURL: siteURL(),
   admin: {
     user: Users.slug,
     importMap: {

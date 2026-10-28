@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation.js'
 
 import { currentUser, payloadClient } from '@/lib/payload'
 import { indexFirms } from '@/lib/search'
+import { passedTurnstile } from '@/lib/turnstile'
 
 const TOKEN_COOKIE = 'payload-token'
 
@@ -14,6 +15,7 @@ const fail = (path: string, message: string): never =>
 const errorText = (err: unknown) => (err instanceof Error ? err.message : 'Something went wrong')
 
 export async function signUp(form: FormData) {
+  if (!(await passedTurnstile(form))) fail('/signup', 'Please complete the "Verify you are human" check.')
   const payload = await payloadClient()
   try {
     await payload.create({
@@ -25,6 +27,19 @@ export async function signUp(form: FormData) {
     fail('/signup', errorText(err))
   }
   redirect('/login?message=' + encodeURIComponent('Account created. Check your email and click the link to confirm it, then sign in.'))
+}
+
+export async function verifyEmail(form: FormData) {
+  const payload = await payloadClient()
+  const token = str(form, 'token')
+  let ok = false
+  try {
+    ok = await payload.verifyEmail({ collection: 'users', token })
+  } catch {
+    ok = false
+  }
+  if (!ok) fail(`/verify?token=${token}`, "That link didn't work. It may have been used already, so try signing in.")
+  redirect('/login?message=' + encodeURIComponent('Email confirmed. You can sign in now.'))
 }
 
 export async function logIn(form: FormData) {
@@ -86,6 +101,7 @@ export async function postReview(form: FormData) {
   const user = await currentUser()
   const slug = str(form, 'slug')
   if (!user) redirect('/login')
+  if (!(await passedTurnstile(form))) fail(`/firms/${slug}`, 'Please complete the "Verify you are human" check.')
   const payload = await payloadClient()
   try {
     await payload.create({
