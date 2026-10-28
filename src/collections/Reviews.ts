@@ -55,6 +55,11 @@ export const Reviews: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, operation, req }) => {
+        // Reviews written on the site always belong to the person signed in, staff included.
+        if (operation === 'create' && req.user && !data.author && !req.context?.system) {
+          data.author = req.user.id
+          data.authorName ??= 'name' in req.user ? req.user.name || null : null
+        }
         if (operation === 'create' && !hasRole(req.user, 'moderator') && !req.context?.system) {
           data.author = req.user?.id
           data.authorName = req.user && 'name' in req.user ? req.user.name || null : null
