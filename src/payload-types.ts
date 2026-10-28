@@ -67,19 +67,54 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
-    firms: Firm;
+    companies: Company;
+    licences: Licence;
+    categories: Category;
+    regulators: Regulator;
+    ratings: Rating;
+    methodologies: Methodology;
     reviews: Review;
+    claims: Claim;
+    'edit-requests': EditRequest;
+    reports: Report;
+    leads: Lead;
+    'featured-slots': FeaturedSlot;
+    subscribers: Subscriber;
+    insights: Insight;
+    pages: Page;
+    alerts: Alert;
+    users: User;
+    'audit-log': AuditLog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    companies: {
+      licences: 'licences';
+      ratings: 'ratings';
+    };
+  };
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
-    firms: FirmsSelect<false> | FirmsSelect<true>;
+    companies: CompaniesSelect<false> | CompaniesSelect<true>;
+    licences: LicencesSelect<false> | LicencesSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    regulators: RegulatorsSelect<false> | RegulatorsSelect<true>;
+    ratings: RatingsSelect<false> | RatingsSelect<true>;
+    methodologies: MethodologiesSelect<false> | MethodologiesSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    claims: ClaimsSelect<false> | ClaimsSelect<true>;
+    'edit-requests': EditRequestsSelect<false> | EditRequestsSelect<true>;
+    reports: ReportsSelect<false> | ReportsSelect<true>;
+    leads: LeadsSelect<false> | LeadsSelect<true>;
+    'featured-slots': FeaturedSlotsSelect<false> | FeaturedSlotsSelect<true>;
+    subscribers: SubscribersSelect<false> | SubscribersSelect<true>;
+    insights: InsightsSelect<false> | InsightsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    alerts: AlertsSelect<false> | AlertsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    'audit-log': AuditLogSelect<false> | AuditLogSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -89,8 +124,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    home: Home;
+  };
+  globalsSelect: {
+    home: HomeSelect<false> | HomeSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -120,13 +159,212 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Every institution in the directory. Ratings are read-only here: analysts set them in Ratings.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companies".
+ */
+export interface Company {
+  id: number;
+  legalName: string;
+  slug: string;
+  entityId?: string | null;
+  primaryCategory?: (number | null) | Category;
+  subCategories?: (number | Category)[] | null;
+  hqCountry?: string | null;
+  website?: string | null;
+  groupId?: string | null;
+  shortDescription?: string | null;
+  brandNames?:
+    | {
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  formerNames?:
+    | {
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  operatingCountries?:
+    | {
+        code: string;
+        id?: string | null;
+      }[]
+    | null;
+  lei?: string | null;
+  yearFounded?: number | null;
+  employeeRange?: string | null;
+  minDepositUsd?: number | null;
+  registeredAddress?: string | null;
+  officeLocations?: string | null;
+  /**
+   * Public senior names and roles only.
+   */
+  keyPeople?: string | null;
+  productsServices?: string | null;
+  platforms?: string | null;
+  clientTypes?: string | null;
+  languages?: string | null;
+  arabicWebsite?: boolean | null;
+  publicEmail?: string | null;
+  phone?: string | null;
+  socialLinks?: string | null;
+  licences?: {
+    docs?: (number | Licence)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  tier: 'standard' | 'claimed' | 'partner';
+  tierStart?: string | null;
+  tierEnd?: string | null;
+  managers?: (number | User)[] | null;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
+  extendedAbout?: string | null;
+  videoUrl?: string | null;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
+  accounts?: string | null;
+  instruments?: string | null;
+  platformsDetail?: string | null;
+  fees?: string | null;
+  team?:
+    | {
+        name: string;
+        role?: string | null;
+        photoUrl?: string | null;
+        bio?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  offices?:
+    | {
+        city: string;
+        country?: string | null;
+        address?: string | null;
+        lat?: number | null;
+        lng?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  news?:
+    | {
+        title: string;
+        date?: string | null;
+        summary?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  documents?:
+    | {
+        title: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  ratingState?: ('not_rated' | 'under_review' | 'rated' | 'suspended') | null;
+  ratingOverall?: number | null;
+  ratingBand?: string | null;
+  ratingColor?: string | null;
+  ratingDate?: string | null;
+  ratingNote?: string | null;
+  ratingMethodology?: string | null;
+  ratingScores?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  reviewCount?: number | null;
+  reviewAverage?: number | null;
+  alertActive?: boolean | null;
+  ratings?: {
+    docs?: (number | Rating)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  priority?: number | null;
+  confidence?: ('High' | 'Medium' | 'Low') | null;
+  warningFlag?: boolean | null;
+  dateVerified?: string | null;
+  listedOn?: string | null;
+  sources?: string | null;
+  notes?: string | null;
+  isExample?: boolean | null;
+  archived?: boolean | null;
+  editedSinceImport?: boolean | null;
+  lastImportedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Main categories have no parent; sub-categories point to their main category.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  order?: number | null;
+  parent?: (number | null) | Category;
+  intro?: string | null;
+  laterPhase?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "licences".
+ */
+export interface Licence {
+  id: number;
+  company: number | Company;
+  regulator: number | Regulator;
+  licenceNumber: string;
+  jurisdiction?: string | null;
+  status?: ('Active' | 'Suspended' | 'Withdrawn' | 'Unknown') | null;
+  licenceType?: string | null;
+  dateGranted?: string | null;
+  dateChecked?: string | null;
+  registerUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regulators".
+ */
+export interface Regulator {
+  id: number;
+  code: string;
+  slug: string;
+  country?: string | null;
+  order?: number | null;
+  name: string;
+  description?: string | null;
+  registerUrl?: string | null;
+  alertsUrl?: string | null;
+  registerLastChecked?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Staff, reviewers and company users. Roles decide what each person can see and change.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   name?: string | null;
-  role: 'admin' | 'member';
+  role: 'admin' | 'analyst' | 'editor' | 'moderator' | 'sales' | 'business' | 'member';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -150,34 +388,308 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Only Analysts can create, edit or publish a rating. Every published rating becomes a public history entry.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "firms".
+ * via the `definition` "ratings".
  */
-export interface Firm {
+export interface Rating {
   id: number;
-  name: string;
-  slug: string;
-  regulator?: string | null;
-  licenceNumber?: string | null;
-  country?: string | null;
-  category?: string | null;
-  website?: string | null;
-  description?: string | null;
+  title?: string | null;
+  company: number | Company;
+  methodology: number | Methodology;
+  status: 'draft' | 'in_review' | 'published';
+  state: 'not_rated' | 'under_review' | 'rated' | 'suspended';
+  /**
+   * Filled from the methodology when you save the first time. Total and band are calculated.
+   */
+  scores?:
+    | {
+        criterion: string;
+        max: number;
+        score?: number | null;
+        internalNote?: string | null;
+        shareableNote?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  overall?: number | null;
+  band?: string | null;
+  bandColor?: string | null;
+  methodologyVersion?: string | null;
+  reason: string;
+  publicNote?: string | null;
+  analyst?: (number | null) | User;
+  publishedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Criteria, maximum points and score bands. Each rating stores the version it used.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "methodologies".
+ */
+export interface Methodology {
+  id: number;
+  title: string;
+  version: string;
+  isDefault?: boolean | null;
+  categories?: (number | Category)[] | null;
+  criteria?:
+    | {
+        name: string;
+        maxPoints: number;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A score at or above "min score" gets that band.
+   */
+  bands?:
+    | {
+        label: string;
+        minScore: number;
+        color: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every review and company reply waits here until a moderator approves it.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "reviews".
  */
 export interface Review {
   id: number;
-  firm: number | Firm;
-  author: number | User;
+  company: number | Company;
+  author?: (number | null) | User;
+  authorName?: string | null;
   rating: number;
+  experienceDate?: string | null;
+  relationship?: ('client' | 'ex_client' | 'partner') | null;
   title: string;
   body: string;
+  /**
+   * What the reviewer gave as proof of being a client. Never shown publicly.
+   */
+  proofNote?: string | null;
   status: 'pending' | 'approved' | 'rejected';
+  verified?: boolean | null;
+  autoFlag?: string | null;
+  helpfulCount?: number | null;
+  reportCount?: number | null;
+  helpfulVoters?: (number | User)[] | null;
+  replyText?: string | null;
+  replyStatus?: ('none' | 'pending' | 'approved' | 'rejected') | null;
+  replyAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Approving a claim makes the company Claimed and gives the person access to the business dashboard.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "claims".
+ */
+export interface Claim {
+  id: number;
+  company: number | Company;
+  user?: (number | null) | User;
+  name: string;
+  jobTitle?: string | null;
+  workEmail: string;
+  message?: string | null;
+  status: 'new' | 'in_progress' | 'approved' | 'rejected' | 'done';
+  domainMatch?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Changes a company asked for. Nothing goes live until an editor applies it to the company record.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "edit-requests".
+ */
+export interface EditRequest {
+  id: number;
+  company: number | Company;
+  user?: (number | null) | User;
+  summary: string;
+  details: string;
+  status: 'new' | 'in_progress' | 'approved' | 'rejected' | 'done';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Data error reports, rating review requests and abuse reports on reviews.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports".
+ */
+export interface Report {
+  id: number;
+  kind: 'data_error' | 'rating_review' | 'review_abuse';
+  status: 'new' | 'in_progress' | 'approved' | 'rejected' | 'done';
+  company?: (number | null) | Company;
+  review?: (number | null) | Review;
+  subject: string;
+  message?: string | null;
+  name?: string | null;
+  email?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every form on the site lands here: call-back requests, contact and "Talk to us".
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads".
+ */
+export interface Lead {
+  id: number;
+  type: 'callback' | 'contact' | 'business';
+  status: 'new' | 'in_progress' | 'approved' | 'rejected' | 'done';
+  assignedTo?: (number | null) | User;
+  company?: (number | null) | Company;
+  name: string;
+  contact: string;
+  organisation?: string | null;
+  interest?: string | null;
+  message?: string | null;
+  consent?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Paid placements. Always shown with a "Featured" label; they never change normal ranking.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "featured-slots".
+ */
+export interface FeaturedSlot {
+  id: number;
+  label?: string | null;
+  company: number | Company;
+  placement: 'home' | 'search' | 'category' | 'similar';
+  /**
+   * Optional: only on this category.
+   */
+  category?: (number | null) | Category;
+  start: string;
+  end: string;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscribers".
+ */
+export interface Subscriber {
+  id: number;
+  email: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "insights".
+ */
+export interface Insight {
+  id: number;
+  title: string;
+  slug: string;
+  publishedAt?: string | null;
+  author?: string | null;
+  excerpt?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Legal, trust and about pages. Text to be supplied by BusinessLens.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  slug: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  metaDescription?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Regulator warnings and BusinessLens notices. An active alert puts a red banner on the company page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "alerts".
+ */
+export interface Alert {
+  id: number;
+  title: string;
+  kind?: ('regulator' | 'notice') | null;
+  date: string;
+  active?: boolean | null;
+  regulator?: (number | null) | Regulator;
+  company?: (number | null) | Company;
+  namedEntity?: string | null;
+  summary?: string | null;
+  officialUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Who changed what, and when. Entries cannot be edited or deleted.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-log".
+ */
+export interface AuditLog {
+  id: number;
+  action?: string | null;
+  collectionSlug?: string | null;
+  docId?: string | null;
+  docLabel?: string | null;
+  changedFields?: string | null;
+  user?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -206,16 +718,76 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'companies';
+        value: number | Company;
       } | null)
     | ({
-        relationTo: 'firms';
-        value: number | Firm;
+        relationTo: 'licences';
+        value: number | Licence;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'regulators';
+        value: number | Regulator;
+      } | null)
+    | ({
+        relationTo: 'ratings';
+        value: number | Rating;
+      } | null)
+    | ({
+        relationTo: 'methodologies';
+        value: number | Methodology;
       } | null)
     | ({
         relationTo: 'reviews';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'claims';
+        value: number | Claim;
+      } | null)
+    | ({
+        relationTo: 'edit-requests';
+        value: number | EditRequest;
+      } | null)
+    | ({
+        relationTo: 'reports';
+        value: number | Report;
+      } | null)
+    | ({
+        relationTo: 'leads';
+        value: number | Lead;
+      } | null)
+    | ({
+        relationTo: 'featured-slots';
+        value: number | FeaturedSlot;
+      } | null)
+    | ({
+        relationTo: 'subscribers';
+        value: number | Subscriber;
+      } | null)
+    | ({
+        relationTo: 'insights';
+        value: number | Insight;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'alerts';
+        value: number | Alert;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'audit-log';
+        value: number | AuditLog;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -261,6 +833,393 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companies_select".
+ */
+export interface CompaniesSelect<T extends boolean = true> {
+  legalName?: T;
+  slug?: T;
+  entityId?: T;
+  primaryCategory?: T;
+  subCategories?: T;
+  hqCountry?: T;
+  website?: T;
+  groupId?: T;
+  shortDescription?: T;
+  brandNames?:
+    | T
+    | {
+        name?: T;
+        id?: T;
+      };
+  formerNames?:
+    | T
+    | {
+        name?: T;
+        id?: T;
+      };
+  operatingCountries?:
+    | T
+    | {
+        code?: T;
+        id?: T;
+      };
+  lei?: T;
+  yearFounded?: T;
+  employeeRange?: T;
+  minDepositUsd?: T;
+  registeredAddress?: T;
+  officeLocations?: T;
+  keyPeople?: T;
+  productsServices?: T;
+  platforms?: T;
+  clientTypes?: T;
+  languages?: T;
+  arabicWebsite?: T;
+  publicEmail?: T;
+  phone?: T;
+  socialLinks?: T;
+  licences?: T;
+  tier?: T;
+  tierStart?: T;
+  tierEnd?: T;
+  managers?: T;
+  logoUrl?: T;
+  bannerUrl?: T;
+  extendedAbout?: T;
+  videoUrl?: T;
+  ctaLabel?: T;
+  ctaUrl?: T;
+  accounts?: T;
+  instruments?: T;
+  platformsDetail?: T;
+  fees?: T;
+  team?:
+    | T
+    | {
+        name?: T;
+        role?: T;
+        photoUrl?: T;
+        bio?: T;
+        id?: T;
+      };
+  offices?:
+    | T
+    | {
+        city?: T;
+        country?: T;
+        address?: T;
+        lat?: T;
+        lng?: T;
+        id?: T;
+      };
+  news?:
+    | T
+    | {
+        title?: T;
+        date?: T;
+        summary?: T;
+        id?: T;
+      };
+  documents?:
+    | T
+    | {
+        title?: T;
+        url?: T;
+        id?: T;
+      };
+  ratingState?: T;
+  ratingOverall?: T;
+  ratingBand?: T;
+  ratingColor?: T;
+  ratingDate?: T;
+  ratingNote?: T;
+  ratingMethodology?: T;
+  ratingScores?: T;
+  reviewCount?: T;
+  reviewAverage?: T;
+  alertActive?: T;
+  ratings?: T;
+  priority?: T;
+  confidence?: T;
+  warningFlag?: T;
+  dateVerified?: T;
+  listedOn?: T;
+  sources?: T;
+  notes?: T;
+  isExample?: T;
+  archived?: T;
+  editedSinceImport?: T;
+  lastImportedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "licences_select".
+ */
+export interface LicencesSelect<T extends boolean = true> {
+  company?: T;
+  regulator?: T;
+  licenceNumber?: T;
+  jurisdiction?: T;
+  status?: T;
+  licenceType?: T;
+  dateGranted?: T;
+  dateChecked?: T;
+  registerUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  order?: T;
+  parent?: T;
+  intro?: T;
+  laterPhase?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regulators_select".
+ */
+export interface RegulatorsSelect<T extends boolean = true> {
+  code?: T;
+  slug?: T;
+  country?: T;
+  order?: T;
+  name?: T;
+  description?: T;
+  registerUrl?: T;
+  alertsUrl?: T;
+  registerLastChecked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ratings_select".
+ */
+export interface RatingsSelect<T extends boolean = true> {
+  title?: T;
+  company?: T;
+  methodology?: T;
+  status?: T;
+  state?: T;
+  scores?:
+    | T
+    | {
+        criterion?: T;
+        max?: T;
+        score?: T;
+        internalNote?: T;
+        shareableNote?: T;
+        id?: T;
+      };
+  overall?: T;
+  band?: T;
+  bandColor?: T;
+  methodologyVersion?: T;
+  reason?: T;
+  publicNote?: T;
+  analyst?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "methodologies_select".
+ */
+export interface MethodologiesSelect<T extends boolean = true> {
+  title?: T;
+  version?: T;
+  isDefault?: T;
+  categories?: T;
+  criteria?:
+    | T
+    | {
+        name?: T;
+        maxPoints?: T;
+        description?: T;
+        id?: T;
+      };
+  bands?:
+    | T
+    | {
+        label?: T;
+        minScore?: T;
+        color?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  company?: T;
+  author?: T;
+  authorName?: T;
+  rating?: T;
+  experienceDate?: T;
+  relationship?: T;
+  title?: T;
+  body?: T;
+  proofNote?: T;
+  status?: T;
+  verified?: T;
+  autoFlag?: T;
+  helpfulCount?: T;
+  reportCount?: T;
+  helpfulVoters?: T;
+  replyText?: T;
+  replyStatus?: T;
+  replyAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "claims_select".
+ */
+export interface ClaimsSelect<T extends boolean = true> {
+  company?: T;
+  user?: T;
+  name?: T;
+  jobTitle?: T;
+  workEmail?: T;
+  message?: T;
+  status?: T;
+  domainMatch?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "edit-requests_select".
+ */
+export interface EditRequestsSelect<T extends boolean = true> {
+  company?: T;
+  user?: T;
+  summary?: T;
+  details?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reports_select".
+ */
+export interface ReportsSelect<T extends boolean = true> {
+  kind?: T;
+  status?: T;
+  company?: T;
+  review?: T;
+  subject?: T;
+  message?: T;
+  name?: T;
+  email?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leads_select".
+ */
+export interface LeadsSelect<T extends boolean = true> {
+  type?: T;
+  status?: T;
+  assignedTo?: T;
+  company?: T;
+  name?: T;
+  contact?: T;
+  organisation?: T;
+  interest?: T;
+  message?: T;
+  consent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "featured-slots_select".
+ */
+export interface FeaturedSlotsSelect<T extends boolean = true> {
+  label?: T;
+  company?: T;
+  placement?: T;
+  category?: T;
+  start?: T;
+  end?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscribers_select".
+ */
+export interface SubscribersSelect<T extends boolean = true> {
+  email?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "insights_select".
+ */
+export interface InsightsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  publishedAt?: T;
+  author?: T;
+  excerpt?: T;
+  body?: T;
+  metaTitle?: T;
+  metaDescription?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  body?: T;
+  metaDescription?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "alerts_select".
+ */
+export interface AlertsSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  date?: T;
+  active?: T;
+  regulator?: T;
+  company?: T;
+  namedEntity?: T;
+  summary?: T;
+  officialUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -288,31 +1247,15 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "firms_select".
+ * via the `definition` "audit-log_select".
  */
-export interface FirmsSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  regulator?: T;
-  licenceNumber?: T;
-  country?: T;
-  category?: T;
-  website?: T;
-  description?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews_select".
- */
-export interface ReviewsSelect<T extends boolean = true> {
-  firm?: T;
-  author?: T;
-  rating?: T;
-  title?: T;
-  body?: T;
-  status?: T;
+export interface AuditLogSelect<T extends boolean = true> {
+  action?: T;
+  collectionSlug?: T;
+  docId?: T;
+  docLabel?: T;
+  changedFields?: T;
+  user?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -355,6 +1298,46 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: number;
+  headline?: string | null;
+  subline?: string | null;
+  popularSearches?:
+    | {
+        label: string;
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  institutionsTitle?: string | null;
+  institutionsText?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  headline?: T;
+  subline?: T;
+  popularSearches?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  institutionsTitle?: T;
+  institutionsText?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

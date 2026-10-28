@@ -1,42 +1,34 @@
 import Link from 'next/link'
 import React from 'react'
 
+import { CompareTray } from '@/components/site/Compare'
+import { Footer, Header } from '@/components/site/Header'
 import { currentUser } from '@/lib/payload'
+import { siteURL } from '@/lib/site'
 import './styles.css'
 
 // Every page reads the signed-in user and live data, so nothing is pre-built.
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  description: 'A demo that checks every part of the BusinessLens stack works together.',
-  title: 'BusinessLens Demo',
+  metadataBase: new URL(siteURL()),
+  title: { default: 'BusinessLens: ratings, licences and reviews of financial institutions', template: '%s · BusinessLens' },
+  description: 'Independent ratings, verified licences and real reviews for brokers, banks, custodians, funds and fintechs across the Middle East and beyond.',
+  robots: { index: false, follow: false },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const user = await currentUser()
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body>
-        <header className="top">
-          <Link href="/" className="brand">BusinessLens <span>demo</span></Link>
-          <nav>
-            <Link href="/search">Search</Link>
-            <Link href="/status">Status</Link>
-            {user ? (
-              <>
-                <Link href="/account">{user.name || user.email}</Link>
-                {user.role === 'admin' && <a href="/admin">Admin</a>}
-              </>
-            ) : (
-              <>
-                <Link href="/login">Sign in</Link>
-                <Link href="/signup" className="button">Sign up</Link>
-              </>
-            )}
-          </nav>
-        </header>
+        <div className="ribbon">
+          Demo site for review. Firms marked “Example” are made up to show every feature; the UAE firms are real register data and not yet rated. <Link href="/about">About this demo</Link>
+        </div>
+        <Header user={user} />
         <main>{props.children}</main>
-        <footer>All firms on this site are made up. It exists only to test the setup.</footer>
+        <Footer />
+        <CompareTray />
       </body>
     </html>
   )

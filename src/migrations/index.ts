@@ -1,15 +1,15 @@
-import * as migration_20261027_100511_initial from './20261027_100511_initial';
-import * as migration_20261027_101500_seed_demo_firms from './20261027_101500_seed_demo_firms';
+import * as migration_20261028_164411_full_schema from './20261028_164411_full_schema';
+import * as migration_20261028_164500_seed_full_demo from './20261028_164500_seed_full_demo';
 
 export const migrations = [
   {
-    up: migration_20261027_100511_initial.up,
-    down: migration_20261027_100511_initial.down,
-    name: '20261027_100511_initial',
+    up: migration_20261028_164411_full_schema.up,
+    down: migration_20261028_164411_full_schema.down,
+    name: '20261028_164411_full_schema',
   },
   {
-    up: migration_20261027_101500_seed_demo_firms.up,
-    down: migration_20261027_101500_seed_demo_firms.down,
-    name: '20261027_101500_seed_demo_firms',
+    up: migration_20261028_164500_seed_full_demo.up,
+    down: migration_20261028_164500_seed_full_demo.down,
+    name: '20261028_164500_seed_full_demo',
   },
 ];

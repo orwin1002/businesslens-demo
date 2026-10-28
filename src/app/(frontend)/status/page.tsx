@@ -5,7 +5,8 @@ import { INDEX, meili } from '@/lib/search'
 import { siteURL } from '@/lib/site'
 import { turnstileSiteKey } from '@/lib/turnstile'
 import { reindexSearch, sendTestEmail } from '../actions'
-import { Notice, type PageProps } from '../Notice'
+import { Notice } from '@/components/site/CompanyList'
+import type { PageProps } from '@/lib/params'
 
 type Check = { name: string; ok: boolean | null; detail: string }
 
@@ -32,7 +33,7 @@ export default async function Status({ searchParams }: PageProps) {
   try {
     const payload = await payloadClient()
     const [counts, ms] = await timed(async () => ({
-      firms: (await payload.count({ collection: 'firms' })).totalDocs,
+      companies: (await payload.count({ collection: 'companies' })).totalDocs,
       users: (await payload.count({ collection: 'users' })).totalDocs,
       reviews: (await payload.count({ collection: 'reviews' })).totalDocs,
     }))
@@ -41,7 +42,7 @@ export default async function Status({ searchParams }: PageProps) {
     checks.push({
       name: 'Database (PostgreSQL on Render)',
       ok: true,
-      detail: `Connected to ${where} in ${ms} ms. ${counts.firms} firms, ${counts.users} users, ${counts.reviews} reviews.`,
+      detail: `Connected to ${where} in ${ms} ms. ${counts.companies} companies, ${counts.users} users, ${counts.reviews} reviews.`,
     })
   } catch (err) {
     checks.push({ name: 'Database (PostgreSQL on Render)', ok: false, detail: String(err) })
@@ -54,7 +55,7 @@ export default async function Status({ searchParams }: PageProps) {
   } else {
     try {
       const [stats, ms] = await timed(() => client.index(INDEX).getStats())
-      checks.push({ name: 'Search (Meilisearch)', ok: true, detail: `Connected in ${ms} ms. ${stats.numberOfDocuments} firms in the search index.` })
+      checks.push({ name: 'Search (Meilisearch)', ok: true, detail: `Connected in ${ms} ms. ${stats.numberOfDocuments} companies in the search index.` })
     } catch (err) {
       checks.push({ name: 'Search (Meilisearch)', ok: false, detail: String(err) })
     }
@@ -92,11 +93,11 @@ export default async function Status({ searchParams }: PageProps) {
   )
 
   return (
-    <>
+    <div className="wrap section" style={{ maxWidth: 900 }}>
       <h1>System status</h1>
       <p className="muted">Site address: {siteURL()}</p>
       <Notice message={sp.message} error={sp.error} />
-      <table className="status">
+      <div className="table-wrap" style={{ marginBottom: 16 }}><table className="data status-table">
         <tbody>
           {checks.map((c) => (
             <tr key={c.name}>
@@ -108,21 +109,21 @@ export default async function Status({ searchParams }: PageProps) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
       <div className="row">
         {user && (
           <form action={sendTestEmail}>
-            <button>Send me a test email</button>
+            <button className="btn">Send me a test email</button>
           </form>
         )}
         {user?.role === 'admin' && client && (
           <form action={reindexSearch}>
-            <button className="secondary">Rebuild search index</button>
+            <button className="btn secondary">Rebuild search index</button>
           </form>
         )}
         <a href="/sitemap.xml">sitemap.xml</a>
         <a href="/robots.txt">robots.txt</a>
       </div>
-    </>
+    </div>
   )
 }

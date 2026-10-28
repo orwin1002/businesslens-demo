@@ -1,17 +1,37 @@
 # BusinessLens demo
 
-A throwaway website that tests every part of the BusinessLens stack together before the real build starts. All firms on it are made up.
+A working demo of the BusinessLens portal, built from the client brief and the sitemap and wireframes of 28 October 2026. It runs on the same stack the real site will use, so it also proves every service works together.
 
 | Part | What it does here | Service |
 |---|---|---|
-| Next.js | The web pages | Vercel |
-| Payload CMS | Admin panel at `/admin`, sign-up, sign-in, password reset, email confirmation | runs inside Next.js on Vercel |
-| PostgreSQL | Stores firms, users and reviews | Render |
-| Meilisearch | Typo-tolerant search ("capitl" finds "Capital") | Meilisearch Cloud |
-| Email | Confirm-your-email, password reset, review emails | Resend (or Postmark) |
-| Cloudflare | Sits in front of the site; "Verify you are human" check on sign-up and reviews | Cloudflare (Worker + Turnstile) |
+| Next.js | The public website | Vercel |
+| Payload CMS | Admin panel at `/admin`, sign-up and sign-in, roles, moderation queues, Excel import | runs inside Next.js on Vercel |
+| PostgreSQL | Stores companies, licences, ratings, reviews, users and every form | Render |
+| Meilisearch | Typo-tolerant search, filters and counts ("emirats nbd" finds Emirates NBD) | Meilisearch Cloud |
+| Email | Confirm-your-email, password reset, review and claim emails | Resend (or Postmark) |
+| Cloudflare | Sits in front of the site; "Verify you are human" check on forms | Cloudflare (Worker + Turnstile) |
 
 Open **`/status`** on the live site. It checks each part and shows a green tick when that part is connected.
+
+## What the demo contains
+
+- **13 example companies** (all made up, marked "Example") that show every state: rated, under review, suspended, not yet rated, a regulator alert, a Claimed profile and a Partner profile with banner, team, offices, lead form and badge.
+- **Real companies** once you import `Batch1_UAE.xlsx` (500 UAE firms from the regulator registers). They are all "Not yet rated", because only analysts can rate.
+- **Public pages** from the sitemap: home, search with filters, category, category × country, country, regulator, group, company profile (Standard, Claimed, Partner), all reviews, claim, report an error, request a rating review, compare, alerts, methodology, write a review, for businesses, business dashboard, insights, legal pages, contact, rating badge, `sitemap.xml`.
+- **Admin** at `/admin`: companies, licences, ratings (draft → in review → published, total and band calculated), review and reply moderation, claims, edit requests, reports, leads, featured slots, CMS pages and insights, audit log, users and roles, and **Import from Excel**.
+
+### Importing the 500 UAE firms
+
+1. Sign in at `/admin`.
+2. In the left menu, click **Import from Excel**.
+3. Choose `Batch1_UAE.xlsx` and click **1. Check file**. You get a validation report (new, updates, warnings, errors) before anything is saved.
+4. Click **2. Import 500 companies**. It takes about half a minute on Vercel. The search index updates at the end.
+
+Running the same file again updates the companies instead of duplicating them (they are matched by `entity_id`). Companies you edited by hand in the admin are skipped unless you tick "overwrite".
+
+### Roles
+
+The first account created at `/admin` is the **admin** and can do everything. Under **Users** you can give other accounts a staff role: `analyst` (ratings), `editor` (company data and content), `moderator` (reviews, claims, reports), `sales` (tiers, featured slots, leads). Public sign-ups are `member`. When a claim is approved, that person becomes `business` and gets the business dashboard.
 
 ---
 
@@ -73,26 +93,27 @@ You can skip this step: search still works without it, using the database instea
 
 5. Click **Deploy** and wait 2 to 3 minutes. When it says *Congratulations*, click the preview to open your site. The address looks like `businesslens-demo-xxxx.vercel.app`.
 
-The first time the site opens, it creates the database tables and adds 6 made-up firms by itself.
+The first time the site opens, it creates the database tables and adds the 13 example companies by itself.
 
 ### Step 5. Claim the admin account straight away
 
 Open `https://<your-site>.vercel.app/admin`. Payload asks you to **create the first user**. That first user becomes the admin, so do this right away, before anyone else finds the site.
+
+> **Upgrading from the first demo (the one with 6 firms)?** The new version replaces the old tables, so the old test accounts and reviews are gone. Open `/admin` and create your admin account again, then import the Excel file as described above.
 
 ### Step 6. Test everything
 
 Go through this list on the live site:
 
 - [ ] `/status` shows ticks for **Vercel**, **Database** and **Search**.
-- [ ] Search for `capitl` (typo on purpose). "Demo Capital Markets Ltd" should come up.
-- [ ] **Sign up** with the email from Step 2. You should get a "Confirm your account" email. Click the link, then **Confirm my email**.
-- [ ] **Sign in.** Your name appears top right.
-- [ ] Open a firm and **write a review**. You should get a "We received your review" email.
-- [ ] In `/admin` → **Reviews**, open the review, set **Status** to `approved` and click **Save**. You should get a "Your review is live" email, and the review appears on the firm page with its star score.
-- [ ] Sign out, then use **Forgot your password?** The reset email should arrive, and the new password should work.
-- [ ] On `/status`, click **Send me a test email**.
-- [ ] As admin, add a new firm in `/admin` → **Firms**, then search for it. It should show up straight away.
-- [ ] Open `/sitemap.xml`. It should list every firm page (this is for SEO).
+- [ ] Search for `capitl` (typo on purpose). "Desert Capital Markets Ltd" comes up. Search `EMX`: it finds Example Markets Ltd and says it matched the brand.
+- [ ] **Sign up** with the email from Step 2, click the link in the "Confirm your account" email, then **Confirm my email** and **Log in**.
+- [ ] Open **Gulf FX DMCC** → **Write a review**. You get a "We received your review" email.
+- [ ] In `/admin` → **Reviews**, set the review's **Status** to `approved` and save. You get a "Your review is live" email and the review appears on the profile.
+- [ ] On the profile, click **Claim this profile** and send the form. In `/admin` → **Claims**, set it to `approved`. Your account now has a **Dashboard** link: reply to a review there, and approve the reply in **Reviews**.
+- [ ] Open **Partner Brokerage LLC**, send the **Request a call back** form, and find it in `/admin` → **Leads & enquiries**.
+- [ ] Import `Batch1_UAE.xlsx` (see "Importing the 500 UAE firms" above), then search for `emirats nbd`.
+- [ ] Open `/sitemap.xml`. It lists every company, category, country and regulator page.
 
 ### Step 7. Cloudflare without buying a domain (15 min)
 
@@ -163,10 +184,11 @@ pnpm dev                      # open http://localhost:3000
 
 ## Where things are in the code
 
-- `src/collections/`: the database tables (Users, Firms, Reviews), who may read or change them, and the emails they send.
-- `src/app/(frontend)/`: the public pages. `actions.ts` holds every form action (sign-up, sign-in, review and so on).
-- `src/app/(frontend)/status/page.tsx`: the status checks.
-- `src/lib/search.ts`: keeps Meilisearch in step with the database.
-- `src/lib/turnstile.ts` and `src/app/(frontend)/Turnstile.tsx`: the Cloudflare robot check.
+- `src/collections/`: the database tables, who may read or change them, and the emails they send.
+- `src/app/(frontend)/`: the public pages. `actions.ts` holds every form action.
+- `src/components/site/`: shared page parts (header, search box, company cards, scores, reviews, listing template).
+- `src/components/admin/`: the admin dashboard, branding and the Import from Excel screen. `src/lib/import.ts` does the checking and importing.
+- `src/lib/search.ts` and `src/lib/directory.ts`: keep Meilisearch in step with the database and run every listing. If Meilisearch is missing, pages fall back to the database.
+- `src/seed/`: the 13 example companies, categories, regulators and content pages.
 - `cloudflare/worker.js`: the Worker that puts the site behind Cloudflare.
 - `src/migrations/`: database changes, applied automatically when the site starts.

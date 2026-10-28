@@ -1,51 +1,49 @@
 import type { CollectionConfig } from 'payload'
 
+import { hasRole, isStaffUser } from '../access'
+import { auditChange } from '../lib/audit'
 import { siteURL } from '../lib/site'
-
-const isAdmin = ({ req }: { req: { user?: { role?: string } | null } }) =>
-  req.user?.role === 'admin'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   admin: {
+    group: 'Settings',
     useAsTitle: 'email',
+    defaultColumns: ['email', 'name', 'role', 'createdAt'],
+    description: 'Staff, reviewers and company users. Roles decide what each person can see and change.',
   },
   auth: {
-    // New accounts must click a link in an email before they can sign in.
     verify: {
-      generateEmailSubject: () => 'Confirm your BusinessLens demo account',
+      generateEmailSubject: () => 'Confirm your BusinessLens account',
       generateEmailHTML: ({ token }) =>
-        `<p>Welcome to the BusinessLens demo.</p>
-         <p><a href="${siteURL()}/verify?token=${token}">Click here to confirm your email</a>.</p>`,
+        `<p>Welcome to BusinessLens.</p><p><a href="${siteURL()}/verify?token=${token}">Click here to confirm your email</a>.</p>`,
     },
     forgotPassword: {
-      generateEmailSubject: () => 'Reset your BusinessLens demo password',
+      generateEmailSubject: () => 'Reset your BusinessLens password',
       generateEmailHTML: (args) =>
-        `<p>Someone asked to reset your password.</p>
-         <p><a href="${siteURL()}/reset-password?token=${args?.token}">Choose a new password</a>.</p>
-         <p>If this wasn't you, ignore this email.</p>`,
+        `<p>Someone asked to reset your password.</p><p><a href="${siteURL()}/reset-password?token=${args?.token}">Choose a new password</a>.</p><p>If this wasn't you, ignore this email.</p>`,
     },
   },
   access: {
-    // Only admins can open the admin panel at /admin.
-    admin: isAdmin,
+    admin: ({ req }) => isStaffUser(req.user),
     create: () => true,
-    read: ({ req }) => (req.user?.role === 'admin' ? true : req.user ? { id: { equals: req.user.id } } : false),
-    update: ({ req }) => (req.user?.role === 'admin' ? true : req.user ? { id: { equals: req.user.id } } : false),
-    delete: isAdmin,
+    read: ({ req }) => (hasRole(req.user) ? true : req.user ? { id: { equals: req.user.id } } : false),
+    update: ({ req }) => (hasRole(req.user) ? true : req.user ? { id: { equals: req.user.id } } : false),
+    delete: ({ req }) => hasRole(req.user),
   },
   hooks: {
     beforeChange: [
       async ({ data, operation, req }) => {
         if (operation === 'create') {
-          // The very first account becomes the admin; everyone after that is a member.
+          // The very first account becomes the super admin; everyone else signs up as a member.
           const { totalDocs } = await req.payload.count({ collection: 'users', req })
           if (totalDocs === 0) data.role = 'admin'
-          else if (req.user?.role !== 'admin') data.role = 'member'
+          else if (!hasRole(req.user) && !req.context?.system) data.role = 'member'
         }
         return data
       },
     ],
+    afterChange: [auditChange],
   },
   fields: [
     { name: 'name', type: 'text' },
@@ -54,8 +52,16 @@ export const Users: CollectionConfig = {
       type: 'select',
       defaultValue: 'member',
       required: true,
-      options: ['admin', 'member'],
-      access: { update: ({ req }) => req.user?.role === 'admin' },
+      options: [
+        { label: 'Super admin', value: 'admin' },
+        { label: 'Analyst (ratings)', value: 'analyst' },
+        { label: 'Editor (profiles and content)', value: 'editor' },
+        { label: 'Moderator (reviews and claims)', value: 'moderator' },
+        { label: 'Sales (tiers, leads)', value: 'sales' },
+        { label: 'Company user', value: 'business' },
+        { label: 'Member (reviewer)', value: 'member' },
+      ],
+      access: { update: ({ req }) => hasRole(req.user) },
     },
   ],
 }

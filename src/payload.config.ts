@@ -6,7 +6,14 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
-import { Firms } from './collections/Firms'
+import { Categories } from './collections/Categories'
+import { Companies } from './collections/Companies'
+import { Alerts, Home, Insights, Pages } from './collections/Content'
+import { Licences } from './collections/Licences'
+import { Methodologies } from './collections/Methodologies'
+import { AuditLog, Claims, EditRequests, FeaturedSlots, Leads, Reports, Subscribers } from './collections/Queues'
+import { Ratings } from './collections/Ratings'
+import { Regulators } from './collections/Regulators'
 import { Reviews } from './collections/Reviews'
 import { Users } from './collections/Users'
 import { migrations } from './migrations'
@@ -22,8 +29,25 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: { titleSuffix: ' · BusinessLens admin' },
+    components: {
+      graphics: { Logo: '/components/admin/Brand#Logo', Icon: '/components/admin/Brand#Icon' },
+      beforeDashboard: ['/components/admin/Dashboard#Dashboard'],
+      afterNavLinks: ['/components/admin/NavImport#NavLinks'],
+      views: {
+        import: { Component: '/components/admin/ImportView#ImportView', path: '/import' },
+      },
+    },
   },
-  collections: [Users, Firms, Reviews],
+  collections: [
+    Companies, Licences, Categories, Regulators,
+    Ratings, Methodologies,
+    Reviews, Claims, EditRequests, Reports,
+    Leads, FeaturedSlots, Subscribers,
+    Insights, Pages, Alerts,
+    Users, AuditLog,
+  ],
+  globals: [Home],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -39,7 +63,7 @@ export default buildConfig({
   email: process.env.SMTP_HOST
     ? nodemailerAdapter({
         defaultFromAddress: process.env.EMAIL_FROM || 'onboarding@resend.dev',
-        defaultFromName: 'BusinessLens Demo',
+        defaultFromName: 'BusinessLens',
         transportOptions: {
           host: process.env.SMTP_HOST,
           port: smtpPort,

@@ -1,16 +1,15 @@
+import { AuthCard } from '@/components/site/AuthCard'
+import type { PageProps } from '@/lib/params'
 import { forgotPassword } from '../actions'
-import { Notice, type PageProps } from '../Notice'
 
 export default async function ForgotPassword({ searchParams }: PageProps) {
   const sp = await searchParams
   return (
-    <>
-      <h1>Reset your password</h1>
-      <Notice error={sp.error} />
-      <form action={forgotPassword} className="stack narrow">
+    <AuthCard title="Reset your password" error={sp.error}>
+      <form action={forgotPassword} className="form">
         <label>Email<input name="email" type="email" required /></label>
-        <button>Email me a reset link</button>
+        <button className="btn">Email me a reset link</button>
       </form>
-    </>
+    </AuthCard>
   )
 }
